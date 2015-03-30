@@ -10,7 +10,7 @@ svg {
 }
 
 .points {
-  fill: red;
+  fill: orange;
 }
 
 .caption {
@@ -94,6 +94,7 @@ function ready(error, dc, bars) {
       .attr("d", path)
     .append("title")
       .text(function(d) { return d.properties.NAMELSAD; });
+      .html(<b>function(d) { return d.properties.NAMELSAD; }</b>);
   
   // add points of interest
   svg.append("path")
