@@ -94,7 +94,7 @@ function ready(error, dc, bars) {
       .attr("d", path)
     .append("title")
       //.text(function(d) { return d.properties.NAMELSAD; });
-      .html(function(d) { <b> return d.properties.NAMELSAD; </b> });
+      .html("<b>" + function(d) { return d.properties.NAMELSAD; } + "</b>");
   
   // add points of interest
   svg.append("path")
