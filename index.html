@@ -93,7 +93,7 @@ function ready(error, dc, bars) {
       .attr("fill", function(d) { return quantize(rateByTract.get(d.properties.NAMELSAD)); })
       .attr("d", path)
     .append("title")
-      .text(function(d) { return d.properties.NAMELSAD; });
+      //.text(function(d) { return d.properties.NAMELSAD; });
       .html(<b>function(d) { return d.properties.NAMELSAD; }</b>);
   
   // add points of interest
