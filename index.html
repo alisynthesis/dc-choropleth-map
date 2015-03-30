@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Washington, D.C.</title>
+<style>
+
+svg {
+  font: 12px sans-serif;
+}
+
+.points {
+  fill: red;
+}
+
+.caption {
+  font-weight: bold;
+}
+
+.key path {
+  display: none;
+}
+
+.key line {
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+</style>
+</head>
+<body>
+<script src="http://d3js.org/d3.v3.min.js"></script>
+<script src="http://d3js.org/queue.v1.min.js"></script>
+<script src="http://d3js.org/topojson.v1.min.js"></script>
+<script>
+
+var width = 960,
+    height = 500,
+    maxscale = 7,
+    formatPercent = d3.format(".0%");
+    
+var rateByTract = d3.map();
+
+var quantize = d3.scale.quantize()
+    .domain([0, 1])
+    .range(["#c6d8ef", "#9ecae1", "#6baed6", "#4292c6", "#2171b5", "#085192", "#08306b"]);
+
+// return quantize thresholds for the key    
+var qrange = function(max, num) {
+    var a = [];
+    for (var i=0; i<num; i++) {
+        a.push(i*max/num);
+    }
+    return a;
+}
+    
+var projection = d3.geo.albersUsa();
+
+var path = d3.geo.path()
+    .projection(projection);
+
+var svg = d3.select("body").append("svg")
+    .attr("width", width)
+    .attr("height", height);
+
+queue()
+    .defer(d3.json, "dc.json")
+    .defer(d3.json, "bars.json")
+    .defer(d3.csv, "dcdata.csv", function(d) { rateByTract.set(d.tract, (d.households>0) ? +d.owners/d.households : 0); })
+    .await(ready);
+
+    
+function ready(error, dc, bars) {
+
+  var tracts = topojson.feature(dc, dc.objects.dctracts);
+
+  // define and scale the projection so the map fits nicely in the screen
+  projection
+    .scale(1)
+    .translate([0, 0]);
+
+  var b = path.bounds(tracts),
+    s = 1.0 / Math.max((b[1][0] - b[0][0]) / width, (b[1][1] - b[0][1]) / height),
+    t = [(width - s * (b[1][0] + b[0][0])) / 2, (height - s * (b[1][1] + b[0][1])) / 2];
+
+  projection
+      .scale(s)
+      .translate(t);
+   
+  // add census tracts
+  svg.selectAll("path")
+      .data(tracts.features)
+    .enter().append("path")
+      .attr("fill", function(d) { return quantize(rateByTract.get(d.properties.NAMELSAD)); })
+      .attr("d", path)
+    .append("title")
+      .text(function(d) { return d.properties.NAMELSAD; });
+  
+  // add points of interest
+  svg.append("path")
+      .datum(topojson.feature(bars, bars.objects.bars))
+      .attr("class", "points")
+      .attr("d", path);
+
+  // add key
+  var x = d3.scale.linear()
+    .domain([0, 1])
+    .range([0, 300]);
+
+  var xAxis = d3.svg.axis()
+    .scale(x)
+    .orient("bottom")
+    .tickSize(14)
+    .tickValues(qrange(quantize.domain()[1], quantize.range().length))
+    .tickFormat(function(d) { return formatPercent(d); });
+
+  var g = svg.append("g")
+    .attr("class", "key")
+    .attr("transform", "translate( 50," + height * 3 / 4 + ")");
+
+  g.selectAll("rect")
+    .data(quantize.range().map(function(color) {
+      var d = quantize.invertExtent(color);
+      if (d[0] == null) d[0] = x.domain()[0];
+      if (d[1] == null) d[1] = x.domain()[1];
+      return d;
+    }))
+  .enter().append("rect")
+    .attr("height", 10)
+    .attr("x", function(d) { return x(d[0]); })
+    .attr("width", function(d) { return x(d[1]) - x(d[0]); })
+    .style("fill", function(d) { return quantize(d[0]); });
+
+  g.call(xAxis).append("text")
+    .attr("class", "caption")
+    .attr("y", -6)
+    .text("Household owner occupancy rate");
+
+}
+</script>
+</body>
+</html>
