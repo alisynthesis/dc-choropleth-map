@@ -87,15 +87,14 @@ function ready(error, dc, bars) {
       .translate(t);
    
   // add census tracts
-  var newHtml = function(d) { return d.properties.NAMELSAD; } + "<b>" + d.households + "</b>";
+  var newHtml = "<b>" + function(d) { return d.properties.NAMELSAD; } + "</b>";
   svg.selectAll("path")
       .data(tracts.features)
     .enter().append("path")
       .attr("fill", function(d) { return quantize(rateByTract.get(d.properties.NAMELSAD)); })
       .attr("d", path)
     .append("title")
-      //.text(function(d) { return d.properties.NAMELSAD; });
-      .html(newHtml);
+      .text(function(d) { return d.properties.NAMELSAD; });
   
   // add points of interest
   svg.append("path")
