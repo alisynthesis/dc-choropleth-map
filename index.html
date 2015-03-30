@@ -87,6 +87,7 @@ function ready(error, dc, bars) {
       .translate(t);
    
   // add census tracts
+  var newHtml = function(d) { return d.properties.NAMELSAD; } + "<b>" + " - " + "</b>";
   svg.selectAll("path")
       .data(tracts.features)
     .enter().append("path")
@@ -94,7 +95,7 @@ function ready(error, dc, bars) {
       .attr("d", path)
     .append("title")
       //.text(function(d) { return d.properties.NAMELSAD; });
-      .html("<b>" + function(d) { return d.properties.NAMELSAD; } + "</b>");
+      .html(newHtml);
   
   // add points of interest
   svg.append("path")
